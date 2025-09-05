@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Puanlı Tic-Tac-Toe (Sohbetli)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            width: 90vmin;
+            height: 90vmin;
+            max-width: 500px;
+            max-height: 500px;
+            border: 2px solid #334155; /* slate-700 */
+        }
+        .cell {
+            border: 1px solid #475569; /* slate-600 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1rem, 3.5vmin, 1.5rem);
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.3s;
+            background-color: #334155; /* slate-700 */
+        }
+        .cell:not(.marked):hover {
+            background-color: #475569; /* slate-600 */
+        }
+        .cell.marked.X { color: #34d399; /* emerald-400 */ }
+        .cell.marked.O { color: #fb923c; /* orange-400 */ }
+        .cell.marked.T { color: #38bdf8; /* sky-400 */ }
+        .cell.marked.E { color: #a78bfa; /* violet-400 */ }
+        
+        .cell.scored-X { background-color: rgba(52, 211, 153, 0.3); }
+        .cell.scored-O { background-color: rgba(251, 146, 60, 0.3); }
+        .cell.scored-T { background-color: rgba(56, 189, 248, 0.3); }
+        .cell.scored-E { background-color: rgba(167, 139, 250, 0.3); }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #f59e0b; }
+            50% { box-shadow: 0 0 20px #f59e0b, 0 0 30px #f59e0b; }
+        }
+        .glowing {
+            animation: glow 2.5s infinite;
+        }
+        .last-move {
+            border: 3px solid #facc15; /* yellow-400 */
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+        }
+        #chat-window::-webkit-scrollbar { width: 8px; }
+        #chat-window::-webkit-scrollbar-track { background: #0f172a; }
+        #chat-window::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px;}
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #475569; /* slate-600 */
+            border-top-color: #f59e0b; /* amber-500 */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        #timer-bar-fill {
+            transition: width 0.1s linear;
+        }
+        #timer-toggle-btn.active {
+            background-color: #d97706; /* amber-600 */
+            border-color: #f59e0b;   /* amber-500 */
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <main id="main-content" class="text-center bg-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-6xl">
+        <!-- Lobi Ekranı -->
+        <div id="lobby-screen">
+            <h1 class="text-6xl sm:text-7xl font-bold mb-8 text-amber-400">XOTE</h1>
+            
+            <div class="mb-4">
+                 <input type="text" id="player-name-input" placeholder="Adını Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500 mb-4" maxlength="15">
+            </div>
+
+            <div class="mb-4 flex justify-center">
+                <div id="avatar-upload-trigger" class="w-24 h-24 rounded-full bg-slate-700 cursor-pointer flex items-center justify-center border-2 border-dashed border-slate-500 hover:border-amber-400 transition overflow-hidden">
+                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </div>
+                <input type="file" id="avatar-input" class="hidden" accept="image/png, image/jpeg">
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <div class="flex-1">
+                    <label class="text-slate-400 mb-2 block">Oyuncu Sayısı:</label>
+                    <div class="grid grid-cols-3 gap-4" id="player-count-selector">
+                        <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                            <input type="radio" name="playerCount" value="2" class="hidden"><span>2</span>
+                        </label>
+                        <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                            <input type="radio" name="playerCount" value="3" checked class="hidden"><span>3</span>
+                        </label>
+                         <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                            <input type="radio" name="playerCount" value="4" class="hidden"><span>4</span>
+                        </label>
+                    </div>
+                </div>
+                 <div class="flex-1">
+                    <label class="text-slate-400 mb-2 block">Oyun Modu:</label>
+                     <button id="timer-toggle-btn" class="w-full p-3 bg-slate-700 rounded-lg border-2 border-transparent transition text-white/70">
+                        Hızlı Mod (20sn)
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <button id="create-game-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition">Yeni Oyun Kur</button>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <input type="text" id="game-id-input" placeholder="Oyun ID'si Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500">
+                <button id="join-game-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition">Oyuna Katıl</button>
+            </div>
+            <p id="lobby-error" class="text-red-500 mt-4 min-h-[20px]"></p>
+        </div>
+
+        <!-- Oyun Ekranı -->
+        <div id="game-screen" class="hidden">
+             <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Oyun Alanı -->
+                <div class="flex-grow">
+                    <div id="player-panels-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-between items-center mb-4">
+                         <div id="playerX" class="p-3 rounded-lg border-2 border-transparent flex flex-col items-center gap-2">
+                            <div class="w-16 h-16 rounded-full bg-slate-700 player-avatar"></div>
+                            <div class="flex items-center justify-center gap-2 h-7">
+                                <h2 class="text-xl font-bold">Oyuncu X</h2>
+                                <div class="spinner hidden"></div>
+                            </div>
+                            <p class="text-3xl font-bold text-emerald-400" id="scoreX">0</p>
+                        </div>
+                        <div id="playerO" class="p-3 rounded-lg border-2 border-transparent flex flex-col items-center gap-2">
+                             <div class="w-16 h-16 rounded-full bg-slate-700 player-avatar"></div>
+                             <div class="flex items-center justify-center gap-2 h-7">
+                                <h2 class="text-xl font-bold">Oyuncu O</h2>
+                                <div class="spinner hidden"></div>
+                            </div>
+                            <p class="text-3xl font-bold text-orange-400" id="scoreO">0</p>
+                        </div>
+                         <div id="playerT" class="p-3 rounded-lg border-2 border-transparent flex flex-col items-center gap-2">
+                             <div class="w-16 h-16 rounded-full bg-slate-700 player-avatar"></div>
+                              <div class="flex items-center justify-center gap-2 h-7">
+                                <h2 class="text-xl font-bold">Oyuncu T</h2>
+                                <div class="spinner hidden"></div>
+                            </div>
+                            <p class="text-3xl font-bold text-sky-400" id="scoreT">0</p>
+                        </div>
+                        <div id="playerE" class="p-3 rounded-lg border-2 border-transparent flex flex-col items-center gap-2">
+                             <div class="w-16 h-16 rounded-full bg-slate-700 player-avatar"></div>
+                             <div class="flex items-center justify-center gap-2 h-7">
+                                <h2 class="text-xl font-bold">Oyuncu E</h2>
+                                <div class="spinner hidden"></div>
+                            </div>
+                            <p class="text-3xl font-bold text-violet-400" id="scoreE">0</p>
+                        </div>
+                    </div>
+
+                    <div id="timer-bar" class="w-full bg-slate-600 rounded-full h-2.5 mb-4 hidden">
+                        <div id="timer-bar-fill" class="bg-amber-400 h-2.5 rounded-full" style="width: 100%"></div>
+                    </div>
+
+                    <p id="status" class="mb-4 text-slate-300 text-xl min-h-[28px]">Sıradaki Oyuncu: <span class="font-bold text-white">X</span></p>
+
+                    <div class="flex justify-center">
+                        <div id="grid" class="grid-container"></div>
+                    </div>
+                    
+                     <div class="mt-4 text-center">
+                        <p class="text-sm text-slate-400">Oyun ID: <strong id="game-id-display" class="cursor-pointer" title="Kopyalamak için tıkla"></strong></p>
+                        <p class="text-sm text-slate-400">Kullanıcı ID: <span id="user-id-display"></span></p>
+                        <button id="reset-game-btn" class="mt-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">Oyunu Sıfırla (Sadece Kurucu)</button>
+                    </div>
+                </div>
+
+                <!-- Sohbet Paneli -->
+                <div class="w-full lg:w-80 flex flex-col bg-slate-900 rounded-lg p-4 h-96 lg:h-[650px]">
+                    <h2 class="text-2xl font-bold mb-4 text-amber-400 border-b border-slate-700 pb-2">Sohbet</h2>
+                    <div id="chat-window" class="flex-grow overflow-y-auto mb-4 pr-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="Mesajını yaz..." class="bg-slate-700 text-white w-full p-2 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500">
+                        <button id="send-chat-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition">Gönder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const GRID_SIZE = 10;
+        const WINNING_SCORE = 10;
+        const TURN_DURATION = 20; // saniye
+        const placeholderAvatar = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="17" stroke="#9ca3af" stroke-width="2"/><path d="M13.4,22.5 C14.5,24.5 16.5,26 18,26 C19.5,26 21.5,24.5 22.6,22.5 M14,14.5 C14,15.5 13,15.5 13,14.5 C13,13.5 14,13.5 14,14.5 M23,14.5 C23,15.5 22,15.5 22,14.5 C22,13.5 23,13.5 23,14.5" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        
+        let selectedAvatarBase64 = null;
+        let turnTimerInterval = null;
+
+        const lobbyScreen = document.getElementById('lobby-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const createGameBtn = document.getElementById('create-game-btn');
+        const joinGameBtn = document.getElementById('join-game-btn');
+        const gameIdInput = document.getElementById('game-id-input');
+        const playerNameInput = document.getElementById('player-name-input');
+        const lobbyError = document.getElementById('lobby-error');
+        const grid = document.getElementById('grid');
+        const statusDisplay = document.getElementById('status');
+        const playerPanelsContainer = document.getElementById('player-panels-container');
+        const scoreXDisplay = document.getElementById('scoreX');
+        const scoreODisplay = document.getElementById('scoreO');
+        const scoreTDisplay = document.getElementById('scoreT');
+        const scoreEDisplay = document.getElementById('scoreE');
+        const gameIdDisplay = document.getElementById('game-id-display');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const playerXDisplay = document.getElementById('playerX');
+        const playerODisplay = document.getElementById('playerO');
+        const playerTDisplay = document.getElementById('playerT');
+        const playerEDisplay = document.getElementById('playerE');
+        const resetGameBtn = document.getElementById('reset-game-btn');
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+        const sendChatBtn = document.getElementById('send-chat-btn');
+        const avatarUploadTrigger = document.getElementById('avatar-upload-trigger');
+        const avatarInput = document.getElementById('avatar-input');
+        const timerBar = document.getElementById('timer-bar');
+        const timerBarFill = document.getElementById('timer-bar-fill');
+        const timerToggleBtn = document.getElementById('timer-toggle-btn');
+        
+        let db, auth;
+        let currentUserId = null;
+        let currentGameId = null;
+        let unsubscribeGame = null;
+        let unsubscribeChat = null;
+        let localGameState = {};
+
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyCWA_xnhSncne3azMqA2L3W-llrszPg5k0",
+            authDomain: "puanli-tictactoe-oyunum.firebaseapp.com",
+            projectId: "puanli-tictactoe-oyunum",
+            storageBucket: "puanli-tictactoe-oyunum.firebasestorage.app",
+            messagingSenderId: "350467018447",
+            appId: "1:350467018447:web:00e89d1be6ff3c87eab1ba",
+            measurementId: "G-G3FGGFTEY8"
+        };
+        
+        const app = initializeApp(userFirebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const gameCollectionPath = `artifacts/${appId}/public/data/games`;
+
+        timerToggleBtn.addEventListener('click', () => {
+            timerToggleBtn.classList.toggle('active');
+        });
+        
+        avatarUploadTrigger.addEventListener('click', () => avatarInput.click());
+        avatarInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 128;
+                    let { width, height } = img;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    avatarUploadTrigger.innerHTML = `<img src="${selectedAvatarBase64}" class="w-full h-full object-cover">`;
+                    avatarUploadTrigger.classList.remove('border-dashed');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        onAuthStateChanged(auth, user => { if (user) currentUserId = user.uid; });
+        async function signInUser() { if (!auth.currentUser) await signInAnonymously(auth); }
+        
+        createGameBtn.addEventListener('click', async () => {
+            await signInUser();
+            const playerName = playerNameInput.value.trim();
+            if (!playerName) { lobbyError.textContent = "Lütfen bir ad girin."; return; }
+
+            const playerCount = parseInt(document.querySelector('input[name="playerCount"]:checked').value);
+            const timerEnabled = timerToggleBtn.classList.contains('active');
+            const newGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const gameRef = doc(db, gameCollectionPath, newGameId);
+
+            const players = ['X', 'O'];
+            if (playerCount >= 3) players.push('T');
+            if (playerCount === 4) players.push('E');
+            const startingPlayer = players[Math.floor(Math.random() * players.length)];
+            
+            let scores = { X: 0, O: 0 };
+            if (playerCount >= 3) scores.T = 0;
+            if (playerCount === 4) scores.E = 0;
+
+            let playerObjects = { X: { uid: currentUserId, name: playerName, avatar: selectedAvatarBase64 }, O: null };
+            if (playerCount >= 3) playerObjects.T = null;
+            if (playerCount === 4) playerObjects.E = null;
+
+            const newGameState = {
+                board: Array(GRID_SIZE * GRID_SIZE).fill(null),
+                scoredCells: Array(GRID_SIZE * GRID_SIZE).fill(null),
+                playerCount: playerCount,
+                scores: scores,
+                currentPlayer: startingPlayer,
+                players: playerObjects,
+                winner: null,
+                gameActive: true,
+                lastMoveIndex: null,
+                timerEnabled: timerEnabled,
+                turnStartTime: serverTimestamp(),
+                createdAt: serverTimestamp()
+            };
+            await setDoc(gameRef, newGameState);
+            joinGame(newGameId);
+        });
+
+        joinGameBtn.addEventListener('click', async () => {
+            await signInUser();
+            const playerName = playerNameInput.value.trim();
+            if (!playerName) { lobbyError.textContent = "Lütfen bir ad girin."; return; }
+            
+            const gameId = gameIdInput.value.trim().toUpperCase();
+            if (!gameId) { lobbyError.textContent = "Lütfen bir Oyun ID'si girin."; return; }
+            
+            const gameRef = doc(db, gameCollectionPath, gameId);
+            const gameSnap = await getDoc(gameRef);
+            if (!gameSnap.exists()) { lobbyError.textContent = "Bu ID ile oyun bulunamadı."; return; }
+            
+            const gameData = gameSnap.data();
+            const isAlreadyInGame = Object.values(gameData.players).some(p => p && p.uid === currentUserId);
+            if (isAlreadyInGame) { joinGame(gameId); return; }
+
+            if (gameData.playerCount === 2 && gameData.players.O) { lobbyError.textContent = "Bu 2 kişilik oyun dolu."; return; }
+            if (gameData.playerCount === 3 && gameData.players.T) { lobbyError.textContent = "Bu 3 kişilik oyun dolu."; return; }
+            if (gameData.playerCount === 4 && gameData.players.E) { lobbyError.textContent = "Bu 4 kişilik oyun dolu."; return; }
+
+            const newPlayer = { uid: currentUserId, name: playerName, avatar: selectedAvatarBase64 };
+            if (!gameData.players.O) { await updateDoc(gameRef, { "players.O": newPlayer }); } 
+            else if (gameData.playerCount >= 3 && !gameData.players.T) { await updateDoc(gameRef, { "players.T": newPlayer }); } 
+            else if (gameData.playerCount === 4 && !gameData.players.E) { await updateDoc(gameRef, { "players.E": newPlayer }); }
+            
+            joinGame(gameId);
+        });
+        
+        function joinGame(gameId) {
+            currentGameId = gameId;
+            lobbyScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameIdDisplay.textContent = gameId;
+            userIdDisplay.textContent = currentUserId.substring(0, 8);
+
+            if (unsubscribeGame) unsubscribeGame();
+            if (unsubscribeChat) unsubscribeChat();
+
+            const gameRef = doc(db, gameCollectionPath, currentGameId);
+            unsubscribeGame = onSnapshot(gameRef, (doc) => {
+                if (doc.exists()) {
+                    localGameState = doc.data();
+                    renderGame(localGameState);
+                } else {
+                    gameScreen.classList.add('hidden');
+                    lobbyScreen.classList.remove('hidden');
+                }
+            });
+
+            const messagesRef = collection(db, gameCollectionPath, currentGameId, 'messages');
+            const q = query(messagesRef, orderBy("timestamp"));
+            unsubscribeChat = onSnapshot(q, (snapshot) => {
+                chatWindow.innerHTML = '';
+                snapshot.forEach(doc => renderMessage(doc.data()));
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            });
+        }
+        
+        function renderMessage(data) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-2 mb-2 max-w-[85%]';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'w-8 h-8 rounded-full flex-shrink-0 bg-slate-700 overflow-hidden';
+            avatarDiv.innerHTML = data.senderAvatar ? `<img src="${data.senderAvatar}" class="w-full h-full object-cover">` : placeholderAvatar;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'p-2 rounded-lg';
+
+            const senderSpan = document.createElement('span');
+            senderSpan.className = 'font-bold text-sm block';
+            
+            const textP = document.createElement('p');
+            textP.className = 'break-words inline';
+
+            const playerColors = { X: 'text-emerald-400', O: 'text-orange-400', T: 'text-sky-400', E: 'text-violet-400' };
+            senderSpan.textContent = data.senderName || data.senderSymbol;
+            senderSpan.classList.add(playerColors[data.senderSymbol]);
+            textP.textContent = data.text;
+
+            const isMine = data.senderId === currentUserId;
+            if (isMine) {
+                messageDiv.classList.add('self-end', 'ml-auto', 'flex-row-reverse');
+                contentDiv.classList.add('bg-amber-800');
+            } else {
+                messageDiv.classList.add('self-start', 'mr-auto');
+                contentDiv.classList.add('bg-slate-700');
+            }
+            
+            contentDiv.appendChild(senderSpan);
+            contentDiv.appendChild(textP);
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            chatWindow.appendChild(messageDiv);
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+            let mySymbol, myName, myAvatar;
+            for (const [symbol, player] of Object.entries(localGameState.players)) {
+                if (player && player.uid === currentUserId) {
+                    mySymbol = symbol;
+                    myName = player.name;
+                    myAvatar = player.avatar;
+                    break;
+                }
+            }
+            if (!mySymbol) return;
+            const messagesRef = collection(db, gameCollectionPath, currentGameId, 'messages');
+            await addDoc(messagesRef, { text, senderId: currentUserId, senderSymbol: mySymbol, senderName: myName, senderAvatar: myAvatar, timestamp: serverTimestamp() });
+            chatInput.value = '';
+        }
+
+        sendChatBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+
+        function renderGame(state) {
+            scoreXDisplay.textContent = state.scores.X || 0;
+            scoreODisplay.textContent = state.scores.O || 0;
+            if(state.playerCount >= 3) scoreTDisplay.textContent = state.scores.T || 0;
+            if(state.playerCount === 4) scoreEDisplay.textContent = state.scores.E || 0;
+
+            const updatePlayerPanel = (panel, player, symbol) => {
+                panel.querySelector('h2').textContent = player ? `${player.name} (${symbol})` : `Oyuncu ${symbol}`;
+                const avatarContainer = panel.querySelector('.player-avatar');
+                avatarContainer.innerHTML = player && player.avatar ? `<img src="${player.avatar}" class="w-full h-full object-cover rounded-full">` : placeholderAvatar;
+                const spinner = panel.querySelector('.spinner');
+                if (spinner) {
+                    spinner.classList.toggle('hidden', !!player);
+                }
+            };
+
+            updatePlayerPanel(playerXDisplay, state.players.X, 'X');
+            updatePlayerPanel(playerODisplay, state.players.O, 'O');
+            updatePlayerPanel(playerTDisplay, state.players.T, 'T');
+            updatePlayerPanel(playerEDisplay, state.players.E, 'E');
+
+            playerTDisplay.style.display = state.playerCount >= 3 ? 'flex' : 'none';
+            playerEDisplay.style.display = state.playerCount === 4 ? 'flex' : 'none';
+
+            playerPanelsContainer.className = "grid grid-cols-1 sm:grid-cols-2 gap-4 justify-between items-center mb-4";
+            if (state.playerCount === 3) playerPanelsContainer.classList.add('md:grid-cols-3');
+            else if (state.playerCount === 4) playerPanelsContainer.classList.add('md:grid-cols-4');
+
+            [playerXDisplay, playerODisplay, playerTDisplay, playerEDisplay].forEach(el => { el.classList.remove('glowing'); el.style.borderColor = 'transparent'; });
+            const playerColors = { X: 'text-emerald-400', O: 'text-orange-400', T: 'text-sky-400', E: 'text-violet-400' };
+            const playerBorderColors = { X: '#34d399', O: '#fb923c', T: '#38bdf8', E: '#a78bfa' };
+
+            const allPlayersJoined = state.playerCount === 2 ? state.players.O : (state.playerCount === 3 ? state.players.O && state.players.T : state.players.O && state.players.T && state.players.E);
+
+            if (state.winner && state.winner.length > 0) {
+                const winnerNames = state.winner.map(w => state.players[w]?.name || w).join(', ');
+                const verb = state.winner.length > 1 ? 'kazandı (Berabere)!' : 'kazandı!';
+                statusDisplay.innerHTML = `Oyunu <span class="font-bold">${winnerNames}</span> ${verb} Yeni tur başlıyor...`;
+                state.winner.forEach(w => {
+                    const winnerPanel = w === 'X' ? playerXDisplay : w === 'O' ? playerODisplay : w === 'T' ? playerTDisplay : playerEDisplay;
+                    if(winnerPanel) winnerPanel.classList.add('glowing');
+                });
+            } else if (!state.gameActive) {
+                statusDisplay.textContent = "Oyun bitti! En yüksek skora sahip oyuncu kazandı.";
+            } else if (!allPlayersJoined) {
+                statusDisplay.textContent = "Diğer oyuncuların katılması bekleniyor...";
+            } else {
+                 const currentPlayerName = state.players[state.currentPlayer]?.name || state.currentPlayer;
+                 statusDisplay.innerHTML = `Sıradaki Oyuncu: <span class="font-bold ${playerColors[state.currentPlayer]}">${currentPlayerName}</span>`;
+                 const currentPlayerPanel = state.currentPlayer === 'X' ? playerXDisplay : state.currentPlayer === 'O' ? playerODisplay : state.currentPlayer === 'T' ? playerTDisplay : playerEDisplay;
+                 if(currentPlayerPanel) currentPlayerPanel.style.borderColor = playerBorderColors[state.currentPlayer];
+            }
+            
+            resetGameBtn.disabled = state.players.X?.uid !== currentUserId;
+            resetGameBtn.classList.toggle('opacity-50', state.players.X?.uid !== currentUserId);
+            resetGameBtn.classList.toggle('cursor-not-allowed', state.players.X?.uid !== currentUserId);
+
+            grid.innerHTML = '';
+            state.board.forEach((value, i) => {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                if (value) { cell.textContent = value; cell.classList.add('marked', value); }
+                if (state.scoredCells[i]) { cell.classList.add(`scored-${state.scoredCells[i]}`); }
+                if (state.lastMoveIndex === i) { cell.classList.add('last-move'); }
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCellClick);
+                grid.appendChild(cell);
+            });
+
+            // Timer Logic
+            if(turnTimerInterval) clearInterval(turnTimerInterval);
+            if (state.timerEnabled && state.gameActive && !state.winner && allPlayersJoined) {
+                timerBar.style.display = 'block';
+                const turnStartTime = state.turnStartTime?.toDate();
+                if (!turnStartTime) return;
+
+                turnTimerInterval = setInterval(() => {
+                    const elapsed = (new Date() - turnStartTime) / 1000;
+                    const remaining = Math.max(0, TURN_DURATION - elapsed);
+                    const percentage = (remaining / TURN_DURATION) * 100;
+                    timerBarFill.style.width = `${percentage}%`;
+
+                    if (remaining <= 0) {
+                        clearInterval(turnTimerInterval);
+                        if (localGameState.players.X?.uid === currentUserId) {
+                             skipTurn();
+                        }
+                    }
+                }, 100);
+
+            } else {
+                timerBar.style.display = 'none';
+            }
+        }
+
+        function getNextPlayer(currentPlayer, playerCount) {
+            const playerSymbols = ['X', 'O'];
+            if (playerCount >= 3) playerSymbols.push('T');
+            if (playerCount === 4) playerSymbols.push('E');
+            
+            const currentIndex = playerSymbols.indexOf(currentPlayer);
+            return playerSymbols[(currentIndex + 1) % playerSymbols.length];
+        }
+
+        async function skipTurn() {
+            const nextPlayer = getNextPlayer(localGameState.currentPlayer, localGameState.playerCount);
+            await updateDoc(doc(db, gameCollectionPath, currentGameId), {
+                currentPlayer: nextPlayer,
+                turnStartTime: serverTimestamp()
+            });
+        }
+        
+        async function handleCellClick(e) {
+            const index = parseInt(e.target.dataset.index);
+            if (!localGameState.gameActive || localGameState.winner || localGameState.board[index]) return;
+            
+            let myRole;
+            for (const [role, player] of Object.entries(localGameState.players)) {
+                if (player && player.uid === currentUserId) { myRole = role; break; }
+            }
+            if (localGameState.currentPlayer !== myRole) return;
+            
+            const allPlayersJoined = localGameState.playerCount === 2 ? localGameState.players.O : (localGameState.playerCount === 3 ? localGameState.players.O && localGameState.players.T : localGameState.players.O && localGameState.players.T && localGameState.players.E);
+            if (!allPlayersJoined) { statusDisplay.textContent = "Tüm oyuncular bekleniyor..."; return; }
+
+            const newBoard = [...localGameState.board];
+            newBoard[index] = localGameState.currentPlayer;
+            const { newScores, scoredIndices } = checkForNewScores(newBoard, localGameState.scoredCells, localGameState.currentPlayer, index);
+            const updatedScores = { ...localGameState.scores };
+            updatedScores[localGameState.currentPlayer] += newScores;
+            const updatedScoredCells = [...localGameState.scoredCells];
+            scoredIndices.forEach(idx => updatedScoredCells[idx] = localGameState.currentPlayer);
+
+            let nextPlayer = localGameState.currentPlayer;
+            if (newScores === 0) {
+                nextPlayer = getNextPlayer(localGameState.currentPlayer, localGameState.playerCount);
+            }
+            
+            let winner = null;
+            let gameActive = true;
+
+            const scoreWinners = Object.keys(updatedScores).filter(p => updatedScores[p] >= WINNING_SCORE);
+            if (scoreWinners.length > 0) {
+                winner = scoreWinners;
+                gameActive = false;
+            }
+
+            const isBoardFull = !newBoard.includes(null);
+            if (isBoardFull && !winner) {
+                const maxScore = Math.max(...Object.values(updatedScores));
+                const boardWinners = Object.keys(updatedScores).filter(p => updatedScores[p] === maxScore && maxScore > 0);
+                if (boardWinners.length > 0) {
+                    winner = boardWinners;
+                } else {
+                    winner = [];
+                }
+                gameActive = false;
+            }
+            
+            await updateDoc(doc(db, gameCollectionPath, currentGameId), { board: newBoard, scores: updatedScores, scoredCells: updatedScoredCells, currentPlayer: nextPlayer, winner: winner, gameActive: gameActive, lastMoveIndex: index, turnStartTime: serverTimestamp() });
+            if(winner && localGameState.players.X?.uid === currentUserId) setTimeout(resetGame, 5000);
+        }
+
+        function checkForNewScores(board, scoredCells, player, lastMoveIndex) {
+            let newScores = 0;
+            const scoredIndices = new Set();
+            const directions = [ 1, GRID_SIZE, GRID_SIZE + 1, GRID_SIZE - 1 ];
+            directions.forEach(dir => {
+                for (let i = -2; i <= 0; i++) {
+                    const indices = [ lastMoveIndex + (i * dir), lastMoveIndex + ((i + 1) * dir), lastMoveIndex + ((i + 2) * dir) ];
+                    if (isValidCombination(indices, dir) && indices.every(idx => board[idx] === player)) {
+                        if (indices.filter(idx => scoredCells[idx] !== null).length <= 1) {
+                            newScores++;
+                            indices.forEach(idx => scoredIndices.add(idx));
+                        }
+                    }
+                }
+            });
+            return { newScores, scoredIndices: Array.from(scoredIndices) };
+        }
+
+        function isValidCombination(indices, direction) {
+            if (indices.some(i => i < 0 || i >= GRID_SIZE * GRID_SIZE)) return false;
+            const y = i => Math.floor(i / GRID_SIZE), x = i => i % GRID_SIZE;
+            if (direction === 1) return y(indices[0]) === y(indices[1]) && y(indices[1]) === y(indices[2]);
+            if (direction === GRID_SIZE) return true;
+            if (direction === GRID_SIZE + 1) return y(indices[1]) - y(indices[0]) === 1 && y(indices[2]) - y(indices[1]) === 1 && x(indices[1]) - x(indices[0]) === 1 && x(indices[2]) - x(indices[1]) === 1;
+            if (direction === GRID_SIZE - 1) return y(indices[1]) - y(indices[0]) === 1 && y(indices[2]) - y(indices[1]) === 1 && x(indices[0]) - x(indices[1]) === 1 && x(indices[1]) - x(indices[2]) === 1;
+            return false;
+        }
+
+        async function resetGame() {
+            if (localGameState.players.X?.uid !== currentUserId) return;
+            
+            const players = ['X', 'O'];
+            if (localGameState.playerCount >= 3) players.push('T');
+            if (localGameState.playerCount === 4) players.push('E');
+            const startingPlayer = players[Math.floor(Math.random() * players.length)];
+            
+            let resetScores = { X: 0, O: 0 };
+            if (localGameState.playerCount >= 3) resetScores.T = 0;
+            if (localGameState.playerCount === 4) resetScores.E = 0;
+            
+            await updateDoc(doc(db, gameCollectionPath, currentGameId), {
+                board: Array(GRID_SIZE * GRID_SIZE).fill(null), 
+                scoredCells: Array(GRID_SIZE * GRID_SIZE).fill(null),
+                scores: resetScores, 
+                currentPlayer: startingPlayer, 
+                winner: null, 
+                gameActive: true,
+                lastMoveIndex: null,
+                turnStartTime: serverTimestamp()
+            });
+        }
+        
+        gameIdDisplay.addEventListener('click', () => {
+            const textArea = document.createElement("textarea");
+            textArea.value = currentGameId;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const originalText = gameIdDisplay.textContent;
+                gameIdDisplay.textContent = "Kopyalandı!";
+                setTimeout(() => { gameIdDisplay.textContent = originalText; }, 1500);
+            } catch (err) {
+                console.error('Oyun ID kopyalanamadı', err);
+            }
+            document.body.removeChild(textArea);
+        });
+        
+        resetGameBtn.addEventListener('click', resetGame);
+        
+        // Initial setup
+        signInUser();
+
+    </script>
+</body>
+</html>
+

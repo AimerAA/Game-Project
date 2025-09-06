@@ -88,47 +88,64 @@
         <div id="lobby-screen">
             <h1 class="text-6xl sm:text-7xl font-bold mb-8 text-amber-400">XOTE</h1>
             
-            <div class="mb-4">
-                 <input type="text" id="player-name-input" placeholder="Adını Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500 mb-4" maxlength="15">
-            </div>
-
-            <div class="mb-4 flex justify-center">
-                <div id="avatar-upload-trigger" class="w-24 h-24 rounded-full bg-slate-700 cursor-pointer flex items-center justify-center border-2 border-dashed border-slate-500 hover:border-amber-400 transition overflow-hidden">
-                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            <!-- Giriş/Kayıt Formu -->
+            <div id="auth-screen">
+                <input type="email" id="email-input" placeholder="E-posta Adresi" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500 mb-2">
+                <input type="password" id="password-input" placeholder="Şifre" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500 mb-4">
+                <div class="flex gap-4 mb-4">
+                    <button id="login-btn" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition">Giriş Yap</button>
+                    <button id="register-btn" class="flex-1 bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition">Kayıt Ol</button>
                 </div>
-                <input type="file" id="avatar-input" class="hidden" accept="image/png, image/jpeg">
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <div class="flex-1">
-                    <label class="text-slate-400 mb-2 block">Oyuncu Sayısı:</label>
-                    <div class="grid grid-cols-3 gap-4" id="player-count-selector">
-                        <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
-                            <input type="radio" name="playerCount" value="2" class="hidden"><span>2</span>
-                        </label>
-                        <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
-                            <input type="radio" name="playerCount" value="3" checked class="hidden"><span>3</span>
-                        </label>
-                         <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
-                            <input type="radio" name="playerCount" value="4" class="hidden"><span>4</span>
-                        </label>
+            <!-- Oyun Kurulum Ekranı (Giriş yaptıktan sonra görünür) -->
+            <div id="game-setup-screen" class="hidden">
+                 <div class="mb-2 text-right">
+                    <span id="user-email-display" class="text-slate-400 text-sm"></span>
+                    <button id="logout-btn" class="ml-2 text-amber-400 hover:text-amber-500 text-sm font-bold">[Çıkış Yap]</button>
+                </div>
+                <div class="mb-4">
+                     <input type="text" id="player-name-input" placeholder="Adını Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500 mb-4" maxlength="15">
+                </div>
+
+                <div class="mb-4 flex justify-center">
+                    <div id="avatar-upload-trigger" class="w-24 h-24 rounded-full bg-slate-700 cursor-pointer flex items-center justify-center border-2 border-dashed border-slate-500 hover:border-amber-400 transition overflow-hidden">
+                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    </div>
+                    <input type="file" id="avatar-input" class="hidden" accept="image/png, image/jpeg">
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label class="text-slate-400 mb-2 block">Oyuncu Sayısı:</label>
+                        <div class="grid grid-cols-3 gap-4" id="player-count-selector">
+                            <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                                <input type="radio" name="playerCount" value="2" class="hidden"><span>2</span>
+                            </label>
+                            <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                                <input type="radio" name="playerCount" value="3" checked class="hidden"><span>3</span>
+                            </label>
+                             <label class="flex items-center justify-center space-x-2 p-3 bg-slate-700 rounded-lg cursor-pointer border-2 border-transparent has-[:checked]:border-amber-500 has-[:checked]:bg-slate-600 transition">
+                                <input type="radio" name="playerCount" value="4" class="hidden"><span>4</span>
+                            </label>
+                        </div>
+                    </div>
+                     <div class="flex-1">
+                        <label class="text-slate-400 mb-2 block">Oyun Modu:</label>
+                         <button id="timer-toggle-btn" class="w-full p-3 bg-slate-700 rounded-lg border-2 border-transparent transition text-white/70">
+                            Hızlı Mod (20sn)
+                        </button>
                     </div>
                 </div>
-                 <div class="flex-1">
-                    <label class="text-slate-400 mb-2 block">Oyun Modu:</label>
-                     <button id="timer-toggle-btn" class="w-full p-3 bg-slate-700 rounded-lg border-2 border-transparent transition text-white/70">
-                        Hızlı Mod (20sn)
-                    </button>
-                </div>
-            </div>
 
-            <div class="mb-4">
-                <button id="create-game-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition">Yeni Oyun Kur</button>
-            </div>
-            
-            <div class="flex items-center space-x-2">
-                <input type="text" id="game-id-input" placeholder="Oyun ID'si Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500">
-                <button id="join-game-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition">Oyuna Katıl</button>
+                <div class="mb-4">
+                    <button id="create-game-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition">Yeni Oyun Kur</button>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="game-id-input" placeholder="Oyun ID'si Gir" class="bg-slate-700 text-white w-full p-3 rounded-lg border-2 border-slate-600 focus:outline-none focus:border-amber-500">
+                    <button id="join-game-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition">Oyuna Katıl</button>
+                </div>
             </div>
             <p id="lobby-error" class="text-red-500 mt-4 min-h-[20px]"></p>
         </div>
@@ -207,11 +224,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const GRID_SIZE = 10;
         const WINNING_SCORE = 10;
-        const TURN_DURATION = 20; // saniye
+        const TURN_DURATION = 20;
         const placeholderAvatar = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="17" stroke="#9ca3af" stroke-width="2"/><path d="M13.4,22.5 C14.5,24.5 16.5,26 18,26 C19.5,26 21.5,24.5 22.6,22.5 M14,14.5 C14,15.5 13,15.5 13,14.5 C13,13.5 14,13.5 14,14.5 M23,14.5 C23,15.5 22,15.5 22,14.5 C22,13.5 23,13.5 23,14.5" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         
         let selectedAvatarBase64 = null;
@@ -246,6 +263,14 @@
         const timerBar = document.getElementById('timer-bar');
         const timerBarFill = document.getElementById('timer-bar-fill');
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
+        const authScreen = document.getElementById('auth-screen');
+        const gameSetupScreen = document.getElementById('game-setup-screen');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userEmailDisplay = document.getElementById('user-email-display');
         
         let db, auth;
         let currentUserId = null;
@@ -270,7 +295,52 @@
         
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const gameCollectionPath = `artifacts/${appId}/public/data/games`;
+        
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                authScreen.classList.add('hidden');
+                gameSetupScreen.classList.remove('hidden');
+                userEmailDisplay.textContent = user.email;
+            } else {
+                currentUserId = null;
+                authScreen.classList.remove('hidden');
+                gameSetupScreen.classList.add('hidden');
+                if (gameScreen && !gameScreen.classList.contains('hidden')) {
+                    gameScreen.classList.add('hidden');
+                    lobbyScreen.classList.remove('hidden');
+                }
+            }
+        });
 
+        registerBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            lobbyError.textContent = '';
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                lobbyError.textContent = "Kayıt başarısız: " + error.message;
+            }
+        });
+
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            lobbyError.textContent = '';
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                lobbyError.textContent = "Giriş başarısız: " + error.message;
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+        });
+
+        // --- LOBBY & GAME LOGIC ---
         timerToggleBtn.addEventListener('click', () => {
             timerToggleBtn.classList.toggle('active');
         });
@@ -312,12 +382,8 @@
             };
             reader.readAsDataURL(file);
         });
-
-        onAuthStateChanged(auth, user => { if (user) currentUserId = user.uid; });
-        async function signInUser() { if (!auth.currentUser) await signInAnonymously(auth); }
         
         createGameBtn.addEventListener('click', async () => {
-            await signInUser();
             const playerName = playerNameInput.value.trim();
             if (!playerName) { lobbyError.textContent = "Lütfen bir ad girin."; return; }
 
@@ -358,7 +424,6 @@
         });
 
         joinGameBtn.addEventListener('click', async () => {
-            await signInUser();
             const playerName = playerNameInput.value.trim();
             if (!playerName) { lobbyError.textContent = "Lütfen bir ad girin."; return; }
             
@@ -707,9 +772,6 @@
         
         resetGameBtn.addEventListener('click', resetGame);
         
-        // Initial setup
-        signInUser();
-
     </script>
 </body>
 </html>
